@@ -34,9 +34,9 @@ export function embedderState(db: Db, embedder: Embedder): EmbedderState {
 }
 
 export const mismatchMessage = (state: Extract<EmbedderState, { status: "mismatch" }>, embedder: Embedder) =>
-  `The embedder changed from ${state.stored.provider}/${state.stored.model} (${state.stored.dimensions} dims) ` +
-  `to ${embedder.provider}/${embedder.model}. Vectors from different models are not compatible, so semantic search is off ` +
-  `until you run \`memi reindex\`. That drops and rebuilds the vector table and re-embeds your saved memories. The memories themselves are kept.`;
+  `The embedder changed from ${state.stored.provider}/${state.stored.model} (${state.stored.dimensions} dims) to ${embedder.provider}/${embedder.model}. ` +
+  `Vectors from different models are not compatible and can have different dimensions, so semantic search is off until you run \`memi reindex\`. ` +
+  `Reindexing drops the vector table, rebuilds it for the new model, and re-embeds your saved memories. The memories themselves are kept.`;
 
 function createVecTable(db: Db, dimensions: number) {
   db.exec(

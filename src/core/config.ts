@@ -72,3 +72,36 @@ export function resolveEmbedder(config: MemiConfig = loadConfig()): ResolvedEmbe
 export function resolveAgent(config: MemiConfig = loadConfig()): string | null {
   return process.env.MEMI_AGENT?.trim() || config.agent?.trim() || null;
 }
+
+export const CONFIG_KEYS = ["embedder.provider", "embedder.model", "embedder.baseUrl", "agent", "ui.port"] as const;
+export type ConfigKey = (typeof CONFIG_KEYS)[number];
+
+/** Returns a copy of the config with one key changed. Switching provider clears the old provider's model and URL. */
+export function setConfigValue(config: MemiConfig, key: string, value: string): MemiConfig {
+  const next = structuredClone(config);
+  switch (key as ConfigKey) {
+    case "embedder.provider": {
+      const provider = ProviderSchema.safeParse(value);
+      if (!provider.success) throw new Error(`embedder.provider must be one of: ${ProviderSchema.options.join(", ")}`);
+      next.embedder = { provider: provider.data };
+      return next;
+    }
+    case "embedder.model":
+      next.embedder.model = value;
+      return next;
+    case "embedder.baseUrl":
+      next.embedder.baseUrl = value;
+      return next;
+    case "agent":
+      next.agent = value;
+      return next;
+    case "ui.port": {
+      const port = Number(value);
+      if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("ui.port must be a number from 1 to 65535");
+      next.ui.port = port;
+      return next;
+    }
+    default:
+      throw new Error(`Unknown key "${key}". Keys: ${CONFIG_KEYS.join(", ")}`);
+  }
+}

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
-import { MemiError } from "./types.js";
+import { MemiError, type Scope } from "./types.js";
 
 export interface ProjectInfo {
   project: string;
@@ -42,4 +42,20 @@ export function requireProject(opts: Parameters<typeof resolveProject>[0]): Proj
     );
   }
   return info;
+}
+
+/**
+ * Where a new memory goes. With no explicit scope it lands in the current project when one can be
+ * worked out, and in global otherwise.
+ */
+export function pickScope(opts: {
+  scope?: Scope;
+  project?: string | null;
+  agent?: string | null;
+  cwd?: string;
+}): { scope: Scope; project: string | null } {
+  if (opts.scope === "global") return { scope: "global", project: null };
+  if (opts.scope === "project") return { scope: "project", project: requireProject(opts).project };
+  const info = resolveProject(opts);
+  return info ? { scope: "project", project: info.project } : { scope: "global", project: null };
 }

@@ -3,13 +3,16 @@ import { MemoryStore } from "../src/core/memories.js";
 import { embedderState } from "../src/core/vectors.js";
 import { MODEL_A, MODEL_B, newStore, ollama, ollamaHas } from "./helpers.js";
 
-const available = await ollamaHas(MODEL_A, MODEL_B);
+const available = await ollamaHas(MODEL_A);
+const hasSecondModel = await ollamaHas(MODEL_B);
+if (!available) console.warn(`SKIPPING semantic tests: Ollama is not reachable or ${MODEL_A} is not pulled.`);
+if (available && !hasSecondModel) console.warn(`SKIPPING the embedder-switch test: ${MODEL_B} is not pulled (set MEMI_TEST_ALT_MODEL to another model with a different dimension).`);
 
 describe.skipIf(!available)("semantic search (real Ollama)", () => {
   // Cold model loads can take 30s+, so load both once up front.
   beforeAll(async () => {
     await ollama(MODEL_A).embed(["warm up"], "document");
-    await ollama(MODEL_B).embed(["warm up"], "document");
+    if (hasSecondModel) await ollama(MODEL_B).embed(["warm up"], "document");
   });
 
   async function seeded() {
@@ -52,7 +55,7 @@ describe.skipIf(!available)("semantic search (real Ollama)", () => {
     expect(other.similar).toEqual([]);
   });
 
-  it("switching embedders keeps memories, turns semantic search off, and reindex rebuilds the vectors", async () => {
+  it.skipIf(!hasSecondModel)("switching embedders keeps memories, turns semantic search off, and reindex rebuilds the vectors", async () => {
     const a = await seeded();
     expect(a.status()).toMatchObject({ total: 3, vectors: 3, state: { status: "ok", stored: { model: MODEL_A, dimensions: 768 } } });
 
