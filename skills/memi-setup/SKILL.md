@@ -76,7 +76,7 @@ Restart the client after editing its config. memi has been tested with Claude Co
 
 ## Install the skills
 
-The skills ship inside the package. Copy or symlink the folders (`memi-memory`, `memi-curate`, `memi-setup`) into your client's skills directory. For Claude Code that is `~/.claude/skills/`, and with a global install:
+The skills ship inside the package. Copy or symlink the folders (`memi-memory`, `memi-curate`, `memi-dream`, `memi-setup`) into your client's skills directory. For Claude Code that is `~/.claude/skills/`, and with a global install:
 
 ```bash
 ln -s "$(npm root -g)/@pinkpixel/memi/skills/"* ~/.claude/skills/

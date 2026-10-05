@@ -119,12 +119,13 @@ Restart the client after editing its config. I've only tested this with Claude C
 
 ## Install the skills
 
-The tools alone don't tell an agent when to use them, so there are three skills in `skills/`:
+The tools alone don't tell an agent when to use them, so there are four skills in `skills/`:
 
 | Skill | What it covers |
 |---|---|
 | `memi-memory` | The everyday habit: load context first, recall before deciding, save what's worth keeping, and never save secrets |
 | `memi-curate` | Cleaning up a messy store. It proposes changes and waits for your approval before deleting anything |
+| `memi-dream` | Looking back over a session to save what got missed, sharpen what it confirmed, and tidy the memories it touched. Anything that deletes or changes meaning still waits for you |
 | `memi-setup` | Installing, connecting, switching embedders, and reading `memi doctor` |
 
 They ship inside the package. Copy or symlink the folders into your client's skills directory. For Claude Code that's `~/.claude/skills/`, and with a global install it looks like this:
