@@ -25,12 +25,16 @@ export interface SearchResult {
 }
 
 const RRF_K = 60;
-const RECENCY_HALF_LIFE_DAYS = 60;
 
-/** Importance 1..5 scales the fused score by 0.9..1.3, and fresh memories get up to +10%. */
+/**
+ * How strongly importance and recency nudge the fused relevance score. Top RRF scores are only about
+ * 1.6% apart per rank, so these have to stay small or they outrank relevance.
+ */
+export const RANKING = { importance: 0.025, recency: 0.025, recencyHalfLifeDays: 60 };
+
 function boost(m: Memory): number {
-  const ageDays = (Date.now() - Date.parse(m.updatedAt)) / 86_400_000;
-  return (0.8 + 0.1 * m.importance) * (1 + 0.1 * Math.pow(0.5, Math.max(ageDays, 0) / RECENCY_HALF_LIFE_DAYS));
+  const ageDays = Math.max((Date.now() - Date.parse(m.updatedAt)) / 86_400_000, 0);
+  return (1 + RANKING.importance * (m.importance - 3)) * (1 + RANKING.recency * Math.pow(0.5, ageDays / RANKING.recencyHalfLifeDays));
 }
 
 /** Turns free text into a safe FTS5 query: quoted tokens joined with OR. */

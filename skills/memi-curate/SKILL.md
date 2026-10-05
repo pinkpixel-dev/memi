@@ -18,6 +18,8 @@ Memories pile up. Over time a store collects near-duplicates, decisions that wer
 
 This skill is a careful review. The rule that matters most: **deleting is permanent, so you propose first and the user approves.**
 
+If the user would rather look through memories themselves, `memi ui` opens a browser view where they can search, edit, and delete.
+
 ## 1. Survey
 
 1. `list_categories` for the shape of the store.

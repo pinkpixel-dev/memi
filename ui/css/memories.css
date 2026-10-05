@@ -1,0 +1,168 @@
+/* Memory rows */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 4px var(--gutter) 4px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.row:hover {
+  background: var(--surface);
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  text-align: left;
+}
+
+.row-content {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.row-actions {
+  display: flex;
+  padding-top: 4px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  color: var(--text-faint);
+  font: 400 12px/1.4 var(--font-mono);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip.category {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.chip.pinned {
+  border-color: transparent;
+  background: transparent;
+  color: var(--accent);
+  padding-left: 0;
+}
+
+.pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pip {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--text-faint);
+  border-radius: 50%;
+}
+
+.pip.on {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.score {
+  color: var(--text-faint);
+}
+
+/* Banners and toasts */
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--warn-surface);
+  font-size: 14px;
+}
+
+.banner.error {
+  background: var(--danger-surface);
+}
+
+.banner svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.banner.error svg {
+  color: var(--danger);
+}
+
+.banner .text {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.banner code,
+.cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font: 400 13px/1.5 var(--font-mono);
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  box-shadow: 0 8px 24px oklch(0.1 0.005 265 / 0.5);
+  pointer-events: auto;
+  animation: toast-in 160ms var(--ease);
+}
+
+.toast.error {
+  border-color: var(--danger);
+}
+
+.toast svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

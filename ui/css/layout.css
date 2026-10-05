@@ -1,0 +1,237 @@
+.app {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--sidebar) minmax(0, 1fr);
+  height: 100dvh;
+  /* The page is exactly one screen tall, so it never scrolls. Only the lists inside do.
+     Not on <body>: overflow set there is passed up to the viewport, where clip becomes hidden
+     and focus or scrollIntoView can still scroll it away. */
+  overflow: clip;
+}
+
+/* Sidebar */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px var(--gutter);
+}
+
+.brand {
+  font: 600 18px/1 var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+.sidebar-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 8px 16px;
+}
+
+.group {
+  margin-top: 16px;
+}
+
+.group-title {
+  margin: 0 0 4px;
+  padding: 0 8px;
+  color: var(--text-faint);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sidebar-foot {
+  padding: 12px var(--gutter);
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  font: 400 12px/1.5 var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+/* Main column */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px var(--gutter);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar .search {
+  flex: 1 1 260px;
+}
+
+/* .btn also sets display, and loads later, so these need the extra class to win. */
+.btn.filters-toggle {
+  display: none;
+}
+
+.topbar .spacer {
+  display: none;
+}
+
+.statusline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px var(--gutter);
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.statusline .left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+}
+
+.scroller {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.banners {
+  display: grid;
+  gap: 8px;
+  padding: 0 var(--gutter);
+}
+
+.banners:not(:empty) {
+  padding-top: 12px;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list-foot {
+  display: flex;
+  justify-content: center;
+  padding: 16px var(--gutter) 32px;
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 40px var(--gutter);
+  color: var(--text-dim);
+}
+
+.empty p {
+  margin: 0;
+}
+
+#toasts {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  z-index: 50;
+  display: grid;
+  gap: 8px;
+  width: min(380px, calc(100% - 2 * var(--gutter)));
+  pointer-events: none;
+}
+
+.backdrop {
+  display: none;
+}
+
+/* Phones and small tablets: filters become a drawer. */
+@media (max-width: 899px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .btn.filters-toggle {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: min(320px, 88%);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 180ms var(--ease),
+      visibility 0s linear 180ms;
+  }
+
+  .sidebar.open {
+    transform: none;
+    visibility: visible;
+    transition:
+      transform 180ms var(--ease),
+      visibility 0s;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    border: 0;
+    background: oklch(0.1 0.005 265 / 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms var(--ease);
+  }
+
+  .backdrop.open {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .topbar .search {
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .topbar .spacer {
+    display: block;
+    flex: 1;
+  }
+}
+
+@media (min-width: 900px) {
+  .btn.sidebar-close {
+    display: none;
+  }
+}

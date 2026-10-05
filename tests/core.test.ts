@@ -112,6 +112,20 @@ describe("text search", () => {
     expect(hits.map((h) => h.memory.importance)).toEqual([5, 1]);
   });
 
+  it("lets relevance beat importance when the gap in relevance is large", async () => {
+    // Twelve 12-word memories with 12, 11, ... 1 occurrences of the query word, so their text ranks are unambiguous.
+    // The last one is the least relevant but has the highest importance.
+    const s = newStore();
+    for (let i = 0; i < 12; i++) {
+      const words = [...Array(12 - i).fill("alpha"), ...Array(i).fill("pad")].join(" ");
+      await s.add({ content: words, importance: i === 11 ? 5 : 3 });
+    }
+    const ids = (await s.search({ query: "alpha", mode: "text", limit: 20 })).hits.map((h) => h.memory.id);
+    expect(ids).toHaveLength(12);
+    expect(ids[0]).toBe(1);
+    expect(ids.indexOf(12)).toBeGreaterThan(5);
+  });
+
   it("survives punctuation and empty queries", async () => {
     expect(toFtsQuery('foo" AND (bar*')).toBe('"foo" OR "AND" OR "bar"');
     expect(toFtsQuery("?!")).toBeNull();

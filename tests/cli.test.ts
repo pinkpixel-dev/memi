@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -129,6 +129,64 @@ describe("CLI", () => {
     expect(run("list").out).toMatch(/1 of 1/);
     const noConfirm = run("reindex");
     expect(noConfirm.err).toMatch(/Pass --yes/);
+  });
+});
+
+describe("memi ui", () => {
+  /** Starts `memi ui` and resolves once it has printed its URL. */
+  function startUi(extraArgs: string[], env: Record<string, string>, home: string, cwd: string) {
+    const child = spawn(process.execPath, [...NODE_ARGS, CLI_ENTRY, "ui", ...extraArgs], { cwd, env: childEnv(home, env) });
+    let out = "";
+    let err = "";
+    child.stdout.on("data", (d) => (out += d));
+    child.stderr.on("data", (d) => (err += d));
+    const exited = new Promise<number | null>((resolve) => child.on("close", resolve));
+    const url = new Promise<string>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`no URL printed. stdout: ${out} stderr: ${err}`)), 30_000);
+      child.stdout.on("data", () => {
+        const m = out.match(/running at (http:\/\/localhost:\d+)/);
+        if (m) (clearTimeout(timer), resolve(m[1]!));
+      });
+      exited.then(() => (clearTimeout(timer), reject(new Error(`exited early. stderr: ${err}`))));
+    });
+    return { child, url, exited, err: () => err };
+  }
+
+  it("serves the page and API, then shuts down cleanly on Ctrl+C", async () => {
+    const home = tempDir("home");
+    const cwd = tempDir("cwd");
+    spawnSync(process.execPath, [...NODE_ARGS, CLI_ENTRY, "add", "from the cli", "--global"], { cwd, env: childEnv(home, { MEMI_OLLAMA_URL: DEAD_OLLAMA }), input: "" });
+
+    const ui = startUi(["--port", "0"], { MEMI_OLLAMA_URL: DEAD_OLLAMA }, home, cwd);
+    const url = await ui.url;
+    expect((await fetch(url)).status).toBe(200);
+    const list = await (await fetch(`${url}/api/memories`)).json();
+    expect(list.items.map((m: { content: string }) => m.content)).toEqual(["from the cli"]);
+
+    ui.child.kill("SIGINT");
+    expect(await ui.exited).toBe(0);
+    await expect(fetch(url, { signal: AbortSignal.timeout(2000) })).rejects.toThrow();
+  });
+
+  it("says so clearly when the port is taken", async () => {
+    const home = tempDir("home");
+    const cwd = tempDir("cwd");
+    const first = startUi(["--port", "0"], { MEMI_OLLAMA_URL: DEAD_OLLAMA }, home, cwd);
+    const port = new URL(await first.url).port;
+
+    const second = startUi(["--port", port], { MEMI_OLLAMA_URL: DEAD_OLLAMA }, home, cwd);
+    await expect(second.url).rejects.toThrow();
+    expect(await second.exited).toBe(1);
+    expect(second.err()).toBe(`memi: Port ${port} is already in use. Pick another with --port.\n`);
+
+    first.child.kill("SIGINT");
+    await first.exited;
+  });
+
+  it("rejects a bad port with one clean line", () => {
+    const { run } = sandbox();
+    const r = run("ui", "--port", "abc");
+    expect(r).toMatchObject({ code: 1, err: "memi: Port must be a whole number.\n" });
   });
 });
 

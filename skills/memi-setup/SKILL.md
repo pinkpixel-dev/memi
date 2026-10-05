@@ -128,6 +128,14 @@ If you switch back to the model the vectors were built with, no reindex is neede
 | `warn No project detected here` | No git repo, and no agent name | Set `MEMI_AGENT`, or run inside a git repo |
 | `ok No vectors yet` | Nothing saved yet | Nothing. The index is created on the first save |
 
+## The local UI
+
+`memi ui` starts a memory manager at `http://localhost:4747`. Use it to browse, search, edit, pin, and delete memories. Add `--open` to open your browser, or `--port <n>` to change the port (or `memi config set ui.port <n>`). Press Ctrl+C to stop it.
+
+It only listens on this machine and ignores requests that don't come from `localhost`. If it says the port is already in use, something else is on 4747 (often another `memi ui`), so pick another port.
+
+If the UI shows a banner about the embedder, it is the same message as `memi doctor`. The UI doesn't run `memi reindex` for you, but the banner has the command with a copy button.
+
 ## If the MCP client shows no memi tools
 
 1. Run `memi doctor` outside the client to rule out memi itself.

@@ -1,0 +1,145 @@
+/* Dialogs: the editor is a side sheet on desktop and full screen on phones. */
+dialog {
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: oklch(0.1 0.005 265 / 0.6);
+}
+
+dialog.sheet {
+  width: min(560px, 100%);
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0 0 0 auto;
+  border-width: 0 0 0 1px;
+  border-radius: 0;
+}
+
+dialog.sheet[open] {
+  display: flex;
+  flex-direction: column;
+  animation: sheet-in 180ms var(--ease);
+}
+
+dialog.modal {
+  width: min(420px, calc(100% - 2 * var(--gutter)));
+  margin: auto;
+  border-radius: var(--radius);
+}
+
+dialog.modal[open] {
+  animation: fade-in 140ms var(--ease);
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px var(--gutter);
+  border-bottom: 1px solid var(--border);
+}
+
+.dialog-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dialog-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: var(--gutter);
+}
+
+.dialog-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px var(--gutter);
+  border-top: 1px solid var(--border);
+}
+
+.dialog-foot .spacer {
+  flex: 1;
+}
+
+.modal .dialog-body {
+  gap: 8px;
+}
+
+.modal p {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field > label,
+.field > .label {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.field-row > .input {
+  flex: 1 1 180px;
+}
+
+.form-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.fine {
+  color: var(--text-faint);
+  font: 400 12px/1.5 var(--font-mono);
+}
+
+@media (max-width: 899px) {
+  dialog.sheet {
+    width: 100%;
+    border-width: 0;
+  }
+}

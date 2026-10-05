@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>memi</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/controls.css" />
+    <link rel="stylesheet" href="/css/memories.css" />
+    <link rel="stylesheet" href="/css/dialogs.css" />
+    <script type="module" src="/js/main.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar" aria-label="Filters">
+        <div class="sidebar-head">
+          <span class="brand">memi</span>
+          <button class="btn btn-icon sidebar-close" id="drawer-close" type="button" title="Close filters" aria-label="Close filters">
+            <span data-icon="x"></span>
+          </button>
+        </div>
+        <div class="sidebar-body" id="filters"></div>
+        <div class="sidebar-foot" id="embedder"></div>
+      </aside>
+      <button class="backdrop" id="backdrop" type="button" tabindex="-1" aria-label="Close filters"></button>
+
+      <main class="main">
+        <header class="topbar">
+          <button class="btn filters-toggle" id="drawer-open" type="button" aria-controls="sidebar" aria-expanded="false" title="Filters">
+            <span data-icon="sliders-horizontal"></span>
+            Filters
+          </button>
+          <span class="spacer"></span>
+          <div class="search">
+            <span data-icon="search"></span>
+            <input class="input" id="search" type="search" placeholder="Search memories" aria-label="Search memories" autocomplete="off" spellcheck="false" />
+            <button class="btn btn-icon clear" id="search-clear" type="button" title="Clear search" aria-label="Clear search" hidden>
+              <span data-icon="x"></span>
+            </button>
+          </div>
+          <button class="btn btn-primary" id="new" type="button" title="New memory (n)">
+            <span data-icon="plus"></span>
+            New
+          </button>
+        </header>
+
+        <div class="statusline">
+          <div class="left" id="summary" aria-live="polite"></div>
+          <div class="right">
+            <div class="segmented" id="mode" role="group" aria-label="Search mode" hidden></div>
+            <select class="select" id="order" aria-label="Sort order">
+              <option value="recent">Recent</option>
+              <option value="oldest">Oldest</option>
+              <option value="importance">Importance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="scroller" id="scroller">
+          <div class="banners" id="banners"></div>
+          <ul class="list" id="list" aria-label="Memories"></ul>
+          <div id="empty"></div>
+          <div class="list-foot" id="more"></div>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="sheet" id="editor" aria-labelledby="editor-title"></dialog>
+    <dialog class="modal" id="confirm" aria-labelledby="confirm-title"></dialog>
+    <div id="toasts" role="status" aria-live="polite"></div>
+  </body>
+</html>

@@ -1,0 +1,274 @@
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--control);
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 120ms var(--ease), border-color 120ms var(--ease), opacity 120ms var(--ease);
+}
+
+.btn:hover {
+  background: var(--surface-2);
+}
+
+.btn:active {
+  background: var(--border);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: oklch(0.88 0.004 265);
+  border-color: oklch(0.88 0.004 265);
+}
+
+.btn-primary:active {
+  background: oklch(0.8 0.005 265);
+}
+
+.btn-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-danger:hover {
+  background: var(--danger-surface);
+}
+
+.btn-danger.solid {
+  background: var(--danger);
+  color: var(--bg);
+}
+
+.btn-danger.solid:hover {
+  background: oklch(0.76 0.16 25);
+}
+
+.btn-icon {
+  width: var(--control);
+  padding: 0;
+  border-color: transparent;
+  color: var(--text-dim);
+}
+
+.btn-icon:hover {
+  color: var(--text);
+}
+
+.btn-icon[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+.btn-icon.danger:hover {
+  color: var(--danger);
+  background: var(--danger-surface);
+}
+
+.btn.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Inputs */
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: var(--control);
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  transition: border-color 120ms var(--ease);
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: var(--text-faint);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-faint);
+}
+
+.textarea {
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 140px;
+}
+
+.select {
+  width: auto;
+  padding-right: 8px;
+}
+
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search > svg {
+  position: absolute;
+  left: 12px;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.search .input {
+  padding-left: 38px;
+  padding-right: var(--control);
+}
+
+/* The page has its own clear button, so hide the browser's. */
+.search .input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search .clear {
+  position: absolute;
+  right: 2px;
+}
+
+/* Segmented control, used for search mode and importance */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.segmented > * {
+  flex: 1;
+}
+
+.segmented button,
+.segmented label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--control) - 6px);
+  min-width: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms var(--ease), color 120ms var(--ease);
+}
+
+.segmented button:hover,
+.segmented label:hover {
+  color: var(--text);
+}
+
+.segmented button[aria-pressed="true"],
+.segmented label:has(input:checked) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Sidebar navigation */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--control);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  text-align: left;
+  transition: background-color 120ms var(--ease), color 120ms var(--ease);
+}
+
+.nav-item:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.nav-item[aria-current="true"] {
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.nav-item .label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-item .count {
+  color: var(--text-faint);
+  font: 400 12px/1 var(--font-mono);
+}
+
+.nav-item .here {
+  padding: 2px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--control);
+  padding: 0 8px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.check-row input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+}
