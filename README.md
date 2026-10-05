@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="memi.png" alt="memi, a small smiling pastel blob with a sparkle" width="140">
+  <img src="https://raw.githubusercontent.com/pinkpixel-dev/memi/HEAD/memi.png" alt="memi, a small smiling pastel blob with a sparkle" width="140">
 </p>
 
 # memi
@@ -24,20 +24,19 @@ You need:
 - Node.js 22 or newer
 - One embedder: [Ollama](https://ollama.com) (runs locally) or an OpenAI API key
 
-memi isn't published to npm yet, so for now you build it from source:
+Install it globally to get a `memi` command:
 
 ```bash
-git clone https://github.com/pinkpixel-dev/memi.git
-cd memi
-npm install
-npm run build
+npm install -g @pinkpixel/memi
 ```
 
-Then run it with `node dist/cli/index.js`. Everything below says `memi` to keep it short, so a shell alias helps:
+Or skip the install and let `npx` fetch it when it's needed. That's what the MCP setup below does:
 
 ```bash
-alias memi="node /absolute/path/to/memi/dist/cli/index.js"
+npx -y @pinkpixel/memi doctor
 ```
+
+The examples below say `memi`. If you didn't install globally, use `npx -y @pinkpixel/memi` in its place. To build it from source instead, see [Development](#development).
 
 ## Quick start
 
@@ -80,11 +79,13 @@ Keep in mind that memory text gets sent to OpenAI to be embedded when you do thi
 ### Claude Code
 
 ```bash
-claude mcp add memi -s user -e MEMI_AGENT=claude -- node /absolute/path/to/memi/dist/cli/index.js serve
+claude mcp add memi -s user -e MEMI_AGENT=claude -- npx -y @pinkpixel/memi serve
 claude mcp list
 ```
 
 `-s user` makes memi available in every project, which is usually what you want for a memory. `MEMI_AGENT` is optional (more on that below).
+
+The first start downloads the package, which takes a few seconds. After that npx reuses its cache, so starts are quick, and that cache can hold on to an older version. Use `@pinkpixel/memi@latest` in the command to always get the newest one. If you installed globally, you can use `memi serve` as the command instead, which starts fastest.
 
 ### Other clients
 
@@ -94,15 +95,15 @@ Anything that can launch a stdio MCP server needs a command, its arguments, and 
 {
   "mcpServers": {
     "memi": {
-      "command": "node",
-      "args": ["/absolute/path/to/memi/dist/cli/index.js", "serve"],
+      "command": "npx",
+      "args": ["-y", "@pinkpixel/memi", "serve"],
       "env": { "MEMI_AGENT": "my-agent" }
     }
   }
 }
 ```
 
-Use an absolute path, and restart the client after editing its config. I've only tested this with Claude Code so far, but other clients should work the same way.
+Restart the client after editing its config. I've only tested this with Claude Code so far, but other clients should work the same way.
 
 ### What the agent gets
 
@@ -126,11 +127,13 @@ The tools alone don't tell an agent when to use them, so there are three skills 
 | `memi-curate` | Cleaning up a messy store. It proposes changes and waits for your approval before deleting anything |
 | `memi-setup` | Installing, connecting, switching embedders, and reading `memi doctor` |
 
-Copy or symlink the folders into your client's skills directory. For Claude Code that's `~/.claude/skills/`:
+They ship inside the package. Copy or symlink the folders into your client's skills directory. For Claude Code that's `~/.claude/skills/`, and with a global install it looks like this:
 
 ```bash
-ln -s /absolute/path/to/memi/skills/* ~/.claude/skills/
+ln -s "$(npm root -g)/@pinkpixel/memi/skills/"* ~/.claude/skills/
 ```
+
+Without a global install, grab the `skills` folder from the repo instead.
 
 ## The CLI
 
@@ -239,7 +242,7 @@ If vectors aren't usable, search falls back to keywords and tells you.
 
 ## Limitations
 
-- It's version 0.1.0 and only tested on Linux so far
+- Only tested on Linux so far
 - Only tested with Claude Code as the MCP client
 - Semantic search always returns its nearest matches, even when none of them are really relevant. There's no relevance cutoff yet
 - Search quality depends on the embedding model. `nomic-embed-text` scores are fairly bunched together, so vague queries can rank oddly
@@ -248,8 +251,24 @@ If vectors aren't usable, search falls back to keywords and tells you.
 
 ## Development
 
+To build from source:
+
 ```bash
+git clone https://github.com/pinkpixel-dev/memi.git
+cd memi
 npm install
+npm run build
+```
+
+Run it with `node dist/cli/index.js`, or point an MCP client at it with an absolute path:
+
+```bash
+claude mcp add memi -s user -- node /absolute/path/to/memi/dist/cli/index.js serve
+```
+
+Checks:
+
+```bash
 npm run typecheck
 npm test
 ```

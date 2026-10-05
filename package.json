@@ -1,6 +1,6 @@
 {
   "name": "@pinkpixel/memi",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Local-first memory for AI agents. SQLite, hybrid search, MCP server, and a small local UI.",
   "type": "module",
   "license": "Apache-2.0",
@@ -25,6 +25,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run typecheck && npm run build",
     "dev": "tsx src/cli/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
@@ -54,5 +55,11 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/pinkpixel-dev/memi/issues"
   }
 }

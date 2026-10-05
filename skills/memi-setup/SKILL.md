@@ -26,26 +26,35 @@ Start with `memi doctor`. It checks the database, the embedder, the vector index
 
 ## Install
 
-memi is not published to npm yet, so build it from source:
+Either install it globally, which gives you a `memi` command and the fastest MCP start:
 
 ```bash
-npm install
-npm run build
-node dist/cli/index.js doctor
+npm install -g @pinkpixel/memi
+memi doctor
 ```
 
-Use the absolute path to `dist/cli/index.js` wherever a command below says `<memi>`. Once `@pinkpixel/memi` is published, `npx -y @pinkpixel/memi` will replace `node <path>`.
+or let `npx` fetch it on demand, with no install step:
+
+```bash
+npx -y @pinkpixel/memi doctor
+```
+
+Everything below says `memi`. If memi is not installed globally, use `npx -y @pinkpixel/memi` in its place.
+
+To work on memi itself, build it from source (`npm install`, then `npm run build`) and run `node dist/cli/index.js`.
 
 ## Connect the MCP server
 
 ### Claude Code
 
 ```bash
-claude mcp add memi -s user -e MEMI_AGENT=claude -- node /absolute/path/to/memi/dist/cli/index.js serve
+claude mcp add memi -s user -e MEMI_AGENT=claude -- npx -y @pinkpixel/memi serve
 claude mcp list
 ```
 
 `-s user` makes memi available in every project, which is what you want because memory is shared across them. Drop it to limit memi to the current project. `MEMI_AGENT` is optional, see "Agent name" below.
+
+The first start downloads the package, which takes a few seconds. After that npx reuses its cache. The cache can keep an old version, so use `@pinkpixel/memi@latest` if you want the newest one every time. With a global install, use `memi serve` as the command instead.
 
 ### Other clients
 
@@ -55,19 +64,25 @@ Any client that can launch a stdio MCP server needs the same three things: a com
 {
   "mcpServers": {
     "memi": {
-      "command": "node",
-      "args": ["/absolute/path/to/memi/dist/cli/index.js", "serve"],
+      "command": "npx",
+      "args": ["-y", "@pinkpixel/memi", "serve"],
       "env": { "MEMI_AGENT": "my-agent" }
     }
   }
 }
 ```
 
-Use an absolute path. Restart the client after editing its config. memi has been tested with Claude Code. Other clients should work but have not been checked.
+Restart the client after editing its config. memi has been tested with Claude Code. Other clients should work but have not been checked.
 
 ## Install the skills
 
-Copy the folders in `skills/` (`memi-memory`, `memi-curate`, `memi-setup`) into your client's skills directory. For Claude Code that is `~/.claude/skills/`. Symlinks work too, so updates to the repo carry through.
+The skills ship inside the package. Copy or symlink the folders (`memi-memory`, `memi-curate`, `memi-setup`) into your client's skills directory. For Claude Code that is `~/.claude/skills/`, and with a global install:
+
+```bash
+ln -s "$(npm root -g)/@pinkpixel/memi/skills/"* ~/.claude/skills/
+```
+
+Without a global install, take the `skills` folder from the repo. Symlinks mean a package update carries through.
 
 ## Agent name
 
@@ -138,7 +153,7 @@ If the UI shows a banner about the embedder, it is the same message as `memi doc
 
 ## If the MCP client shows no memi tools
 
-1. Run `memi doctor` outside the client to rule out memi itself.
-2. Check the path in the client config is absolute and that `npm run build` has been run.
-3. Make sure the environment the client launches in can see `node`.
+1. Run `memi doctor` (or `npx -y @pinkpixel/memi doctor`) outside the client to rule out memi itself.
+2. Check that the client can find `npx` (or `memi`). A client launched from a desktop icon may not see the same `PATH` as your terminal. Node.js 22 or newer is required.
+3. The first npx start downloads the package. If the client gives up before it finishes, run `npx -y @pinkpixel/memi --version` once in a terminal to fill the cache, or install globally and use `memi serve`.
 4. Restart the client.
