@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pinkpixel-dev/memi/HEAD/memi.png" alt="memi, a small smiling pastel blob with a sparkle" width="140">
+  <img src="https://raw.githubusercontent.com/pinkpixel-dev/memi/HEAD/memi.png" alt="memi, a small smiling pastel blob with a sparkle" width="300">
 </p>
 
 # memi
