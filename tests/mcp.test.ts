@@ -1,6 +1,8 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { openDb } from "../src/core/db.js";
 import { CLI_ENTRY, DEAD_OLLAMA, MODEL_A, NODE_ARGS, childEnv, ollamaHas, tempDir } from "./helpers.js";
 
 const hasNomic = await ollamaHas(MODEL_A);
@@ -8,11 +10,12 @@ const open: Client[] = [];
 
 /** Starts the real server as a child process and connects a real MCP client to it. */
 async function connect(env: Record<string, string> = {}, cwd = tempDir("cwd")) {
+  const home = tempDir("home");
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [...NODE_ARGS, CLI_ENTRY, "serve"],
     cwd,
-    env: childEnv(tempDir("home"), { MEMI_OLLAMA_URL: DEAD_OLLAMA, ...env }),
+    env: childEnv(home, { MEMI_OLLAMA_URL: DEAD_OLLAMA, ...env }),
     stderr: "ignore",
   });
   const client = new Client({ name: "memi-test", version: "0.0.0" });
@@ -23,7 +26,7 @@ async function connect(env: Record<string, string> = {}, cwd = tempDir("cwd")) {
     const text = (res.content as { type: string; text: string }[]).map((c) => c.text).join("\n");
     return { text, isError: res.isError === true };
   };
-  return { client, call };
+  return { client, call, home };
 }
 
 afterEach(async () => {
@@ -39,6 +42,19 @@ describe("MCP server", () => {
     const forget = tools.find((t) => t.name === "forget")!;
     expect(forget.annotations?.destructiveHint).toBe(true);
     expect(tools.find((t) => t.name === "recall")!.annotations?.readOnlyHint).toBe(true);
+  });
+
+  it("logs each recall so the UI can count them", async () => {
+    const { call, home } = await connect({ MEMI_AGENT: "testbot", MEMI_PROJECT: "alpha" });
+    await call("remember", { content: "The staging server is called falcon" });
+    await call("recall", { query: "falcon" });
+    await call("recall", { query: "zebra" });
+    const db = openDb(join(home, "memi.db"));
+    expect(db.prepare("SELECT agent, project, hits FROM recalls ORDER BY id").all()).toEqual([
+      { agent: "testbot", project: "alpha", hits: 1 },
+      { agent: "testbot", project: "alpha", hits: 0 },
+    ]);
+    db.close();
   });
 
   it("runs the full memory lifecycle, saving even though the embedder is down", async () => {

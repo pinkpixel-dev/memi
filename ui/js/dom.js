@@ -47,3 +47,35 @@ export async function copyText(text) {
     return false;
   }
 }
+
+/** Clicking the dimmed area closes a dialog, but not when a text selection merely ends there. */
+export function closeOnBackdrop(dlg) {
+  let downOnBackdrop = false;
+  dlg.onmousedown = (e) => (downOnBackdrop = e.target === dlg);
+  dlg.onclick = (e) => {
+    if (e.target === dlg && downOnBackdrop) dlg.close();
+  };
+}
+
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+const UNITS = [
+  ["year", 31536000],
+  ["month", 2592000],
+  ["day", 86400],
+  ["hour", 3600],
+  ["minute", 60],
+];
+
+/** "3 days ago", "just now". */
+export function ago(iso) {
+  const seconds = (Date.parse(iso) - Date.now()) / 1000;
+  for (const [unit, size] of UNITS) if (Math.abs(seconds) >= size) return rtf.format(Math.round(seconds / size), unit);
+  return "just now";
+}
+
+/** Five dots for importance, with a text label so it never relies on colour. */
+export function pips(n) {
+  const wrap = h("span", { class: "pips", role: "img", "aria-label": `Importance ${n} of 5`, title: `Importance ${n} of 5` });
+  for (let i = 1; i <= 5; i++) wrap.append(h("span", { class: i <= n ? "pip on" : "pip" }));
+  return wrap;
+}

@@ -67,9 +67,58 @@ dialog.modal[open] {
 }
 
 .dialog-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+}
+
+.head-actions {
+  display: flex;
+}
+
+/* Viewer: the full memory, then its details */
+.memory-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px 16px;
+  margin: 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.details dt {
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+.details dd {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.details time {
+  font: 400 13px/1.5 var(--font-mono);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .dialog-body {

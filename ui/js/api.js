@@ -16,6 +16,7 @@ async function call(method, path, body) {
 }
 
 export const getStatus = () => call("GET", "/api/status");
+export const getStats = (range) => call("GET", `/api/stats?range=${encodeURIComponent(range)}`);
 
 export function listMemories(params) {
   const qs = new URLSearchParams();

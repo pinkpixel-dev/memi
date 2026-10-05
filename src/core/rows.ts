@@ -38,6 +38,8 @@ export interface Filters {
   minImportance?: number;
   pinned?: boolean;
   agent?: string;
+  /** ISO time. Only memories updated at or after it. */
+  since?: string;
 }
 
 /** Builds a WHERE fragment for the memories table, aliased as `alias`. */
@@ -55,5 +57,6 @@ export function whereClause(f: Filters, alias = "m"): { sql: string; params: Rec
   if (f.minImportance) (parts.push(`${a}.importance >= @minImportance`), (params.minImportance = f.minImportance));
   if (f.pinned !== undefined) parts.push(`${a}.pinned = ${f.pinned ? 1 : 0}`);
   if (f.agent) (parts.push(`${a}.agent = @agent`), (params.agent = f.agent));
+  if (f.since) (parts.push(`${a}.updated_at >= @since`), (params.since = f.since));
   return { sql: parts.length ? parts.join(" AND ") : "1", params };
 }

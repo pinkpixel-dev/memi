@@ -159,9 +159,15 @@ Known errors print one line starting with `memi:` and exit with code 1. Commands
 memi ui --open
 ```
 
-This serves a small memory manager at `http://localhost:4747`. You can search, filter by scope, category, and importance, add and edit memories, pin them, and delete them. Deleting always asks first.
+This serves a small memory manager at `http://localhost:4747`. It has two pages.
 
-A few keys help: `/` jumps to search, `n` starts a new memory, `Esc` closes whatever is open, and `Ctrl+Enter` saves. It works on a phone-sized screen too.
+**Dashboard** is where it opens. It shows how many memories you've stored, how many your agents have recalled, a chart of activity over time, and which projects and categories are filling up. Pick a range at the top (all time, 24h, 7d, 30d, or 90d). Clicking a project or category takes you to its memories.
+
+**Memories** is a table of everything memi has saved, including which agent saved each one. Filter by scope, category, agent, importance, pinned, or how recently a memory was updated, or search by meaning and keyword. Click a row to read the whole memory in a side panel, and edit, pin, copy, or delete it from there. Deleting always asks first.
+
+The recalled count only goes up when an agent calls `recall`. Each call logs the time, the agent, the project, and how many memories came back, but not what was searched for. Recalls from before version 1.1.0 weren't logged, so the count starts at zero after you upgrade.
+
+A few keys help: `/` jumps to search, `n` starts a new memory, `Esc` closes whatever is open, and `Ctrl+Enter` saves. It's built for desktop first, but it works on a phone-sized screen too.
 
 It only listens on your own machine, and it ignores requests that don't come from `localhost`, since it can delete things. Pick another port with `--port`, or `memi config set ui.port <n>`.
 

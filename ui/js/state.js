@@ -1,6 +1,7 @@
 const KEY = "memi.ui";
 const MODES = ["hybrid", "semantic", "text"];
 const ORDERS = ["recent", "oldest", "importance"];
+export const RANGES = ["all", "24h", "7d", "30d", "90d"];
 
 function loadPrefs() {
   try {
@@ -30,12 +31,23 @@ export const state = {
   category: "",
   minImportance: 0,
   pinned: false,
+  agent: "",
+  range: "all",
+
+  route: "dashboard",
+  dash: {
+    range: RANGES.includes(prefs.dashRange) ? prefs.dashRange : "7d",
+    series: prefs.dashSeries === "recalled" ? "recalled" : "saved",
+    stats: null,
+    error: null,
+    loadedAt: null,
+  },
 };
 
-/** Search mode and sort order are remembered. Filters start fresh each visit. */
+/** Search mode, sort order and the dashboard view are remembered. Filters start fresh each visit. */
 export function savePrefs() {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ mode: state.mode, order: state.order }));
+    localStorage.setItem(KEY, JSON.stringify({ mode: state.mode, order: state.order, dashRange: state.dash.range, dashSeries: state.dash.series }));
   } catch {
     // Storage can be blocked. The page works without it.
   }
@@ -53,9 +65,17 @@ export function queryParams(offset = 0) {
     category: state.category,
     minImportance: state.minImportance || undefined,
     pinned: state.pinned ? "true" : undefined,
+    agent: state.agent || undefined,
+    range: state.range === "all" ? undefined : state.range,
     limit: PAGE,
     offset,
   };
 }
 
-export const hasFilters = () => state.scope.kind !== "all" || state.category !== "" || state.minImportance > 0 || state.pinned;
+export const hasFilters = () =>
+  state.scope.kind !== "all" || state.category !== "" || state.minImportance > 0 || state.pinned || state.agent !== "" || state.range !== "all";
+
+/** Puts every memory filter back to its default. */
+export function resetFilters() {
+  Object.assign(state, { query: "", scope: { kind: "all", project: null }, category: "", minImportance: 0, pinned: false, agent: "", range: "all" });
+}

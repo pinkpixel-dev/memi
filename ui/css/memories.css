@@ -1,10 +1,80 @@
-/* Memory rows */
-.row {
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 6px var(--gutter) 6px 4px;
+/* Memory table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 10px 8px;
   border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 2px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--gutter);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: calc(var(--gutter) - 8px);
+}
+
+.c-time {
+  width: 132px;
+}
+.c-agent {
+  width: 120px;
+}
+.c-project {
+  width: 156px;
+}
+.c-category {
+  width: 124px;
+}
+.c-importance {
+  width: 96px;
+}
+.c-actions {
+  width: 128px;
+}
+
+td.c-time,
+td.c-agent {
+  white-space: nowrap;
+  color: var(--text-faint);
+  font: 400 12px/1.4 var(--font-mono);
+}
+
+.agent {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.faint {
+  color: var(--text-faint);
+}
+
+.row {
+  cursor: pointer;
   transition: background-color 120ms var(--ease);
 }
 
@@ -13,39 +83,109 @@
 }
 
 .row-main {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  gap: 10px;
-  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: var(--control);
+  padding: 0 6px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: transparent;
   text-align: left;
 }
 
 .row-content {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  min-width: 0;
   overflow: hidden;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pinned-mark {
+  display: inline-flex;
+  flex: none;
+  color: var(--accent);
 }
 
 .row-actions {
   display: flex;
-  padding-top: 4px;
+  justify-content: flex-end;
 }
 
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 8px;
-  color: var(--text-faint);
-  font: 400 12px/1.4 var(--font-mono);
+/* Narrower desktops: drop the columns the side panel already shows. */
+@media (min-width: 900px) and (max-width: 1279px) {
+  .c-category,
+  .c-importance {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1039px) {
+  .c-agent {
+    display: none;
+  }
+}
+
+/* Phones: each row becomes a small card, memory text first and details below. */
+@media (max-width: 899px) {
+  .table,
+  .table tbody {
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    padding: 8px var(--gutter) 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table td,
+  .table td:first-child,
+  .table td:last-child {
+    display: block;
+    width: auto;
+    padding: 0;
+    border: 0;
+  }
+
+  .table td.c-memory {
+    flex: 1 0 100%;
+  }
+
+  .row-main {
+    align-items: flex-start;
+    padding: 6px 0;
+  }
+
+  .row-content {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .pinned-mark {
+    margin-top: 3px;
+  }
+
+  td.c-project {
+    min-width: 0;
+    max-width: 45%;
+  }
+
+  .table td.c-actions {
+    margin-left: auto;
+  }
 }
 
 .chip {
@@ -53,6 +193,7 @@
   align-items: center;
   gap: 4px;
   max-width: 100%;
+  font: 400 12px/1.4 var(--font-mono);
   padding: 2px 8px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -68,11 +209,14 @@
   color: var(--text-dim);
 }
 
-.chip.pinned {
-  border-color: transparent;
-  background: transparent;
-  color: var(--accent);
-  padding-left: 0;
+.chip svg {
+  flex: none;
+}
+
+.chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pips {

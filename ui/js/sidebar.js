@@ -21,6 +21,9 @@ const group = (title, ...children) => h("section", { class: "group" }, h("h2", {
 export function renderSidebar(onChange) {
   const status = state.status;
   if (!status) return;
+  renderEmbedder(status);
+  // Filters only apply to the memories page.
+  if (state.route !== "memories") return void clear($("#filters"));
   const { scope } = state;
   const projectTotal = status.projects.reduce((sum, p) => sum + p.count, 0);
   const pick = (patch) => () => {
@@ -54,6 +57,18 @@ export function renderSidebar(onChange) {
     ...shown.map((c) => navItem(`cat-${c.name}`, c.name, c.count, state.category === c.name, pick({ category: c.name }))),
   );
 
+  const agents = (status.agents ?? []).length
+    ? group(
+        "Agent",
+        h(
+          "ul",
+          { class: "nav" },
+          navItem("agent-all", "All", null, state.agent === "", pick({ agent: "" })),
+          ...status.agents.map((a) => navItem(`agent-${a.agent}`, a.agent, a.count, state.agent === a.agent, pick({ agent: a.agent }))),
+        ),
+      )
+    : null;
+
   const importance = h(
     "div",
     { class: "segmented", role: "group", "aria-label": "Minimum importance" },
@@ -74,8 +89,16 @@ export function renderSidebar(onChange) {
     "Pinned only",
   );
 
-  clear($("#filters")).append(group("Scope", scopes), group("Category", categories), group("Importance", h("div", { class: "nav" }, importance)), h("div", { class: "group" }, pinned));
+  clear($("#filters")).append(
+    group("Scope", scopes),
+    group("Category", categories),
+    ...(agents ? [agents] : []),
+    group("Importance", h("div", { class: "nav" }, importance)),
+    h("div", { class: "group" }, pinned),
+  );
+}
 
+function renderEmbedder(status) {
   const e = status.embedder;
   clear($("#embedder")).append(
     e ? `${e.provider}/${e.model}` : "no embedder",

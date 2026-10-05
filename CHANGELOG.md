@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.0 - October 5, 2026
+
+### 📊 Dashboard
+- The UI now opens on a dashboard with memories stored, memories recalled, an activity chart, and bar charts for projects and categories
+- Pick a time range (all time, 24h, 7d, 30d, or 90d) and every panel follows it
+- Click a project or category bar to jump to the memories page with that filter applied
+
+### 🗂️ Memories page
+- Memories show up in a table with time, agent, memory, project, category, and importance columns. On phones each row turns into a small card
+- Clicking a row opens a side panel with the whole memory and its details. Edit, pin, delete, and copy all live there too
+- New filters: by agent in the sidebar, and by when a memory was last updated (24h, 7d, 30d, or 90d)
+
+### 🔌 MCP server
+- `recall` now logs each call (time, agent, project, and how many memories it returned) so the dashboard can count them. The search text isn't stored
+
+### 🗄️ Database
+- New `recalls` table and an index on `created_at`. The migration runs on its own the first time memi opens the database, and existing memories aren't touched
+
+### 🏷️ Versioning
+- Bumped to 1.1.0
+
 ## 1.0.1 - October 4, 2026
 
 ### 🎨 UI

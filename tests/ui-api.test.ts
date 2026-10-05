@@ -68,6 +68,37 @@ describe("UI API", () => {
     expect((await (await send(app, "GET", "/api/memories?q=%3F%3F%3F")).json()).items).toEqual([]);
   });
 
+  it("serves dashboard stats and lists agents in status", async () => {
+    const rt = runtime();
+    const app = createApp(rt, tempDir("ui"));
+    await send(app, "POST", "/api/memories", { content: "alpha note", scope: "project", project: "alpha", category: "fact" });
+    await send(app, "POST", "/api/memories", { content: "global note" });
+    rt.store.recordRecall({ agent: "claude", project: "alpha", hits: 2 });
+
+    const s = await (await send(app, "GET", "/api/stats?range=30d")).json();
+    expect(s).toMatchObject({ range: "30d", stored: { total: 2, added: 2, today: 2 }, recalled: { memories: 2, searches: 1 }, global: 1, projects: [{ project: "alpha", count: 1 }] });
+    expect(s.activity.buckets).toHaveLength(30);
+    expect((await (await send(app, "GET", "/api/stats")).json()).range).toBe("7d");
+    expect((await send(app, "GET", "/api/stats?range=1y")).status).toBe(400);
+    expect((await (await send(app, "GET", "/api/status")).json()).agents).toEqual([{ agent: "memi-ui", count: 2 }]);
+  });
+
+  it("filters the list by agent and by time range", async () => {
+    const rt = runtime();
+    const app = createApp(rt, tempDir("ui"));
+    await rt.store.add({ content: "from claude", agent: "claude" });
+    const { memory: old } = await rt.store.add({ content: "old one", agent: "codex" });
+    const longAgo = new Date(Date.now() - 40 * 86_400_000).toISOString();
+    rt.store.db.prepare("UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?").run(longAgo, longAgo, old.id);
+
+    const list = async (qs: string) => (await (await send(app, "GET", `/api/memories${qs}`)).json());
+    expect((await list("?agent=claude")).items.map((m: { content: string }) => m.content)).toEqual(["from claude"]);
+    expect((await list("?range=30d")).total).toBe(1);
+    expect((await list("?range=90d")).total).toBe(2);
+    expect((await list("?range=all")).total).toBe(2);
+    expect((await list("?q=old&range=30d")).items).toEqual([]);
+  });
+
   it("answers bad input with a 400 and a readable message", async () => {
     const app = createApp(runtime(), tempDir("ui"));
     const cases: [string, string, unknown, RegExp][] = [

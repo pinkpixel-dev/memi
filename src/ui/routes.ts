@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import type { MemoryStore } from "../core/memories.js";
+import { RANGES } from "../core/stats.js";
 import { MemiError } from "../core/types.js";
 import { EmbedError } from "../embed/types.js";
 
@@ -12,6 +13,11 @@ export interface ApiContext {
 
 const Scope = z.enum(["both", "project", "global", "all"]);
 const Tags = z.array(z.string()).max(10);
+const Range = z.enum(RANGES);
+
+const RANGE_MS: Record<string, number> = { "24h": 86_400_000, "7d": 7 * 86_400_000, "30d": 30 * 86_400_000, "90d": 90 * 86_400_000 };
+/** A rolling window ending now, for filtering the list. All time has no start. */
+const rangeStart = (range: string) => (range === "all" ? undefined : new Date(Date.now() - RANGE_MS[range]!).toISOString());
 
 const ListQuery = z.object({
   q: z.string().trim().optional(),
@@ -20,6 +26,8 @@ const ListQuery = z.object({
   category: z.string().optional(),
   minImportance: z.coerce.number().int().min(1).max(5).optional(),
   pinned: z.enum(["true", "false"]).optional(),
+  agent: z.string().optional(),
+  range: Range.default("all"),
   order: z.enum(["recent", "oldest", "importance"]).default("recent"),
   mode: z.enum(["hybrid", "semantic", "text"]).default("hybrid"),
   limit: z.coerce.number().int().min(1).max(200).default(50),
@@ -65,8 +73,11 @@ export function createApi({ store, currentProject }: ApiContext): Hono {
       currentProject,
       projects: store.projects(),
       categories: store.categories(),
+      agents: store.agents(),
     }),
   );
+
+  api.get("/stats", (c) => c.json(store.stats(Range.parse(c.req.query("range") ?? "7d"))));
 
   api.get("/memories", async (c) => {
     const q = ListQuery.parse(c.req.query());
@@ -76,6 +87,8 @@ export function createApi({ store, currentProject }: ApiContext): Hono {
       category: q.category,
       minImportance: q.minImportance,
       pinned: q.pinned === undefined ? undefined : q.pinned === "true",
+      agent: q.agent,
+      since: rangeStart(q.range),
     };
     if (q.q) {
       const r = await store.search({ ...filters, query: q.q, mode: q.mode, limit: Math.min(q.limit, 50) });

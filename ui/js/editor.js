@@ -1,5 +1,5 @@
 import * as api from "./api.js";
-import { $, clear, h } from "./dom.js";
+import { $, clear, closeOnBackdrop, h } from "./dom.js";
 import { icon } from "./icons.js";
 
 const MAX = 8000;
@@ -115,16 +115,12 @@ export function openEditor(ctx, memory) {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) form.requestSubmit();
   });
 
-  // Clicking the dimmed area closes the sheet, but not when a text selection merely ends there.
-  let downOnBackdrop = false;
-  dlg.onmousedown = (e) => (downOnBackdrop = e.target === dlg);
-  dlg.onclick = (e) => {
-    if (e.target === dlg && downOnBackdrop) dlg.close();
-  };
+  closeOnBackdrop(dlg);
 
   clear(dlg).append(form);
   syncScope();
-  dlg.showModal();
+  // The viewer may already have the sheet open. Swapping its contents keeps the panel in place.
+  if (!dlg.open) dlg.showModal();
   // On a phone, focusing an existing memory would raise the keyboard over the form. New memories always want typing.
   if (isNew || matchMedia("(pointer: fine)").matches) {
     content.focus();

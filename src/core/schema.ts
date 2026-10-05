@@ -51,7 +51,20 @@ CREATE TRIGGER memories_au AFTER UPDATE ON memories BEGIN
 END;
 `;
 
-const MIGRATIONS = [V1];
+// One row per recall call, so the UI can show how often memories are actually used.
+const V2 = `
+CREATE TABLE recalls (
+  id      INTEGER PRIMARY KEY AUTOINCREMENT,
+  at      TEXT NOT NULL,
+  agent   TEXT,
+  project TEXT,
+  hits    INTEGER NOT NULL
+);
+CREATE INDEX idx_recalls_at ON recalls(at);
+CREATE INDEX idx_memories_created ON memories(created_at);
+`;
+
+const MIGRATIONS = [V1, V2];
 
 export function migrate(db: Database): void {
   const current = db.pragma("user_version", { simple: true }) as number;

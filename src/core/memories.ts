@@ -11,6 +11,7 @@ import {
   type Scope,
 } from "./types.js";
 import { search, type SearchOptions } from "./search.js";
+import { recordRecall, stats, type Range } from "./stats.js";
 import { deleteVector, embedMissing, embedderState, ensureVectors, knn, mismatchMessage, putVector, rebuildVectors, scopeKey } from "./vectors.js";
 
 /** Cosine distance under which a new memory is reported as similar to an existing one. */
@@ -208,6 +209,21 @@ export class MemoryStore {
     return this.db
       .prepare("SELECT project, COUNT(*) AS count FROM memories WHERE scope = 'project' GROUP BY project ORDER BY project")
       .all() as { project: string; count: number }[];
+  }
+
+  agents(): { agent: string; count: number }[] {
+    return this.db
+      .prepare("SELECT agent, COUNT(*) AS count FROM memories WHERE agent IS NOT NULL GROUP BY agent ORDER BY count DESC, agent")
+      .all() as { agent: string; count: number }[];
+  }
+
+  /** Dashboard numbers for a time range. */
+  stats(range: Range) {
+    return stats(this.db, range);
+  }
+
+  recordRecall(entry: { agent: string | null; project: string | null; hits: number }) {
+    recordRecall(this.db, entry);
   }
 
   private everything(): Memory[] {

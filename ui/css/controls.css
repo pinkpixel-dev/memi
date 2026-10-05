@@ -227,6 +227,7 @@
   background: transparent;
   color: var(--text-dim);
   text-align: left;
+  text-decoration: none;
   transition: background-color 120ms var(--ease), color 120ms var(--ease);
 }
 
@@ -235,7 +236,7 @@
   color: var(--text);
 }
 
-.nav-item[aria-current="true"] {
+.nav-item[aria-current] {
   background: var(--surface-2);
   color: var(--text);
   font-weight: 500;
@@ -277,4 +278,20 @@
   height: 18px;
   margin: 0;
   accent-color: var(--accent);
+}
+
+/* Text-only button, for small actions inside a line of text */
+.btn.btn-link {
+  min-height: 28px;
+  padding: 0 6px;
+  border-color: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btn.btn-link:hover {
+  background: transparent;
+  color: var(--text);
 }

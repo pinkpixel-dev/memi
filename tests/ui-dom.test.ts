@@ -8,7 +8,10 @@ import { clear, h, hydrateIcons } from "../ui/js/dom.js";
 import { openEditor } from "../ui/js/editor.js";
 import { rowEl } from "../ui/js/list.js";
 import { renderSidebar } from "../ui/js/sidebar.js";
+import { activityChart, barList } from "../ui/js/charts.js";
+import { loadDashboard } from "../ui/js/dashboard.js";
 import { state } from "../ui/js/state.js";
+import { openViewer } from "../ui/js/viewer.js";
 import type { Runtime } from "../src/core/runtime.js";
 import { createApp } from "../src/ui/server.js";
 import { newStore, tempDir } from "./helpers.js";
@@ -84,39 +87,165 @@ describe("h()", () => {
 });
 
 describe("memory rows", () => {
+  const handlers = () => ({ onOpen: vi.fn(), onEdit: vi.fn(), onPin: vi.fn(), onDelete: vi.fn() });
+  const mount = (tr: HTMLElement) => (document.querySelector("#list")!.append(tr), tr);
+
   it("render every field of a hostile memory as plain text", () => {
     const m = memory({ content: PAYLOAD, category: "<b>cat</b>", project: "<i>proj</i>", scope: "project", tags: ["<u>t</u>"], agent: "<s>bot</s>" });
-    const li = rowEl(m, { onEdit: vi.fn(), onPin: vi.fn(), onDelete: vi.fn() });
-    document.body.append(li);
-    expect(li.querySelectorAll("img, script, b, i, u, s")).toHaveLength(0);
-    expect(li.querySelector(".row-content")!.textContent).toBe(PAYLOAD);
-    expect(li.textContent).toContain("<b>cat</b>");
-    expect(li.textContent).toContain("<i>proj</i>");
-    expect(li.textContent).toContain("#<u>t</u>");
+    const tr = mount(rowEl(m, handlers()));
+    expect(tr.querySelectorAll("img, script, b, i, u, s")).toHaveLength(0);
+    expect(tr.querySelector(".row-content")!.textContent).toBe(PAYLOAD);
+    expect(tr.querySelector(".c-category")!.textContent).toBe("<b>cat</b>");
+    expect(tr.querySelector(".c-project")!.textContent).toBe("<i>proj</i>");
+    expect(tr.querySelector(".c-agent")!.textContent).toBe("<s>bot</s>");
     expect((window as unknown as Record<string, unknown>).__pwned).toBeUndefined();
   });
 
-  it("shows pin state, importance and labels that do not rely on colour", () => {
-    const li = rowEl(memory({ id: 3, pinned: true, importance: 4 }), { onEdit: vi.fn(), onPin: vi.fn(), onDelete: vi.fn() });
-    const pin = li.querySelector('[aria-label="Unpin memory 3"]')!;
-    expect(pin.getAttribute("aria-pressed")).toBe("true");
-    expect(pin.getAttribute("title")).toBe("Unpin");
-    expect(li.querySelectorAll(".pip.on")).toHaveLength(4);
-    expect(li.querySelectorAll(".pip")).toHaveLength(5);
-    expect(li.querySelector('[role="img"]')!.getAttribute("aria-label")).toBe("Importance 4 of 5");
-    expect(li.querySelector(".chip.pinned .sr-only")!.textContent).toBe("Pinned");
+  it("has one cell per table column, labelled for the phone layout", () => {
+    const tr = mount(rowEl(memory(), handlers()));
+    const heads = [...document.querySelectorAll(".table thead th")].map((th) => th.className);
+    expect([...tr.children].map((td) => td.className)).toEqual(heads);
+    expect([...tr.children].every((td) => td.getAttribute("data-label"))).toBe(true);
+    expect(tr.querySelector(".c-agent")!.textContent).toBe("–"); // no agent recorded
+    expect(tr.querySelector(".c-project")!.textContent!.trim()).toBe("global");
   });
 
-  it("calls the right handler for edit, pin and delete", () => {
-    const handlers = { onEdit: vi.fn(), onPin: vi.fn(), onDelete: vi.fn() };
+  it("shows pin state, importance and labels that do not rely on colour", () => {
+    const tr = rowEl(memory({ id: 3, pinned: true, importance: 4 }), handlers());
+    const pin = tr.querySelector('[aria-label="Unpin memory 3"]')!;
+    expect(pin.getAttribute("aria-pressed")).toBe("true");
+    expect(pin.getAttribute("title")).toBe("Unpin");
+    expect(tr.querySelectorAll(".pip.on")).toHaveLength(4);
+    expect(tr.querySelectorAll(".pip")).toHaveLength(5);
+    expect(tr.querySelector('[role="img"]')!.getAttribute("aria-label")).toBe("Importance 4 of 5");
+    expect(tr.querySelector(".pinned-mark .sr-only")!.textContent).toBe("Pinned");
+  });
+
+  it("calls the right handler for open, edit, pin and delete", () => {
+    const h = handlers();
     const m = memory({ id: 9 });
-    const li = rowEl(m, handlers);
-    click(li.querySelector('[aria-label="Edit memory 9"]'));
-    click(li.querySelector('[aria-label="Pin memory 9"]'));
-    click(li.querySelector('[aria-label="Delete memory 9"]'));
-    expect(handlers.onEdit).toHaveBeenCalledWith(m);
-    expect(handlers.onPin).toHaveBeenCalledWith(m);
-    expect(handlers.onDelete).toHaveBeenCalledWith(m);
+    const tr = mount(rowEl(m, h));
+    click(tr.querySelector('[aria-label="Open memory 9"]'));
+    click(tr.querySelector('[aria-label="Edit memory 9"]'));
+    click(tr.querySelector('[aria-label="Pin memory 9"]'));
+    click(tr.querySelector('[aria-label="Delete memory 9"]'));
+    expect(h.onOpen).toHaveBeenCalledTimes(1);
+    expect(h.onEdit).toHaveBeenCalledWith(m);
+    expect(h.onPin).toHaveBeenCalledWith(m);
+    expect(h.onDelete).toHaveBeenCalledWith(m);
+  });
+
+  it("opens the memory when the row itself is clicked, but not when a button is", () => {
+    const h = handlers();
+    const tr = mount(rowEl(memory({ id: 2 }), h));
+    click(tr.querySelector(".c-time"));
+    click(tr.querySelector(".c-project .chip"));
+    expect(h.onOpen).toHaveBeenCalledTimes(2);
+    click(tr.querySelector('[aria-label="Edit memory 2"] svg'));
+    expect(h.onOpen).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("viewer", () => {
+  const ctx = () => ({ categories: [], projects: [], currentProject: null, onSaved: vi.fn(), onDelete: vi.fn(), onPin: vi.fn() });
+
+  it("shows the whole memory and its details as plain text", () => {
+    const m = memory({ id: 5, content: `${PAYLOAD}\nsecond line`, tags: ["<u>t</u>"], agent: "<s>bot</s>", scope: "project", project: "alpha" });
+    openViewer(ctx(), m);
+    const dlg = document.querySelector("#editor") as HTMLDialogElement;
+    expect(dlg.open).toBe(true);
+    expect(dlg.querySelector("#editor-title")!.textContent).toBe("Memory #5");
+    expect(dlg.querySelector(".memory-text")!.textContent).toBe(`${PAYLOAD}\nsecond line`);
+    expect(dlg.querySelectorAll("img, script, b, u, s")).toHaveLength(0);
+    const details = Object.fromEntries([...dlg.querySelectorAll("dt")].map((dt) => [dt.textContent, dt.nextElementSibling!.textContent]));
+    expect(details).toMatchObject({ Category: "fact", Project: "alpha", Tags: "#<u>t</u>", Agent: "<s>bot</s>" });
+  });
+
+  it("Edit turns the panel into the editor, and Pin and Delete hand the memory back", () => {
+    const c = ctx();
+    const m = memory({ id: 6 });
+    openViewer(c, m);
+    const button = (text: string) => [...document.querySelectorAll("#editor .dialog-foot button")].find((b) => b.textContent!.trim() === text)!;
+    click(button("Delete"));
+    expect(c.onDelete).toHaveBeenCalledWith(m);
+    click(button("Pin"));
+    expect(c.onPin).toHaveBeenCalledWith(m);
+    openViewer(c, m);
+    click(button("Edit"));
+    const dlg = document.querySelector("#editor") as HTMLDialogElement;
+    expect(dlg.open).toBe(true);
+    expect((dlg.querySelector("#f-content") as HTMLTextAreaElement).value).toBe("plain");
+  });
+});
+
+describe("charts", () => {
+  it("draws bars scaled to the largest row, escapes labels, and picks a row on click", () => {
+    const onPick = vi.fn();
+    const rows = Array.from({ length: 10 }, (_, i) => ({ key: `k${i}`, label: i === 0 ? "<b>top</b>" : `row${i}`, count: 10 - i }));
+    const el = barList(rows, { onPick, noun: "projects" });
+    document.body.append(el);
+    expect(el.querySelectorAll(".bar-row")).toHaveLength(8);
+    expect(el.querySelector("b")).toBeNull();
+    expect(el.querySelector(".bar-text")!.textContent).toBe("<b>top</b>");
+    expect((el.querySelectorAll(".bar-fill")[4] as HTMLElement).style.getPropertyValue("--v")).toBe("0.6");
+    click(el.querySelector("[data-key='bar-k2']"));
+    expect(onPick).toHaveBeenCalledWith(rows[2]);
+
+    const more = el.querySelector(".see-all")!;
+    expect(more.textContent).toBe("See all 10 projects");
+    click(more);
+    expect(el.querySelectorAll(".bar-row")).toHaveLength(10);
+    expect(el.querySelector(".see-all")!.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("draws one column per bucket and reads values out with the arrow keys", () => {
+    const buckets = [0, 2, 5, 1].map((saved, i) => ({ start: new Date(2026, 9, 1 + i).toISOString(), saved, recalled: 0 }));
+    const chart = activityChart(buckets, { key: "saved", bucket: "day", noun: "saved", title: "Memories saved per day" });
+    document.body.append(chart);
+    expect(chart.querySelectorAll(".chart-col")).toHaveLength(4);
+    expect(chart.getAttribute("aria-label")).toBe("Memories saved per day: 8 total, most on Oct 3 (5). Use the arrow keys to read each bar.");
+    chart.dispatchEvent(new FocusEvent("focus"));
+    const tip = chart.querySelector(".chart-tip") as HTMLElement;
+    expect(tip.hidden).toBe(false);
+    expect(tip.textContent).toBe("Oct 3: 5 saved");
+    chart.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
+    expect(tip.textContent).toBe("Oct 2: 2 saved");
+    chart.dispatchEvent(new KeyboardEvent("keydown", { key: "End" }));
+    expect(tip.textContent).toBe("Oct 4: 1 saved");
+    chart.dispatchEvent(new FocusEvent("blur"));
+    expect(tip.hidden).toBe(true);
+  });
+
+  it("says so instead of drawing an empty chart", () => {
+    const chart = activityChart([{ start: new Date().toISOString(), saved: 0, recalled: 0 }], { key: "recalled", bucket: "day", noun: "recalled", title: "x" });
+    expect(chart.textContent).toBe("No recalled in this range yet.");
+  });
+});
+
+describe("dashboard through the real API", () => {
+  it("shows the counts and sends a clicked project to the memories page", async () => {
+    const store = connectApi();
+    await store.add({ content: "a", scope: "project", project: "alpha", category: "fact" });
+    await store.add({ content: "b", scope: "project", project: "alpha", category: "fact" });
+    await store.add({ content: "c", category: "todo" });
+    store.recordRecall({ agent: "claude", project: "alpha", hits: 4 });
+    const links = { toProject: vi.fn(), toCategory: vi.fn() };
+    state.dash.range = "7d";
+    await loadDashboard(links);
+
+    const dash = document.querySelector("#dash")!;
+    expect([...dash.querySelectorAll(".card-value")].map((e) => e.textContent)).toEqual(["3", "4"]);
+    expect([...dash.querySelectorAll(".panel")[1]!.querySelectorAll(".bar-text")].map((e) => e.textContent)).toEqual(["alpha", "global"]);
+    expect([...dash.querySelectorAll(".panel")[2]!.querySelectorAll(".bar-value")].map((e) => e.textContent)).toEqual(["66.7%", "33.3%"]);
+    click(dash.querySelector("[data-key='bar-p-alpha']"));
+    expect(links.toProject).toHaveBeenCalledWith("alpha");
+    click(dash.querySelector("[data-key='bar-global']"));
+    expect(links.toProject).toHaveBeenLastCalledWith(null);
+    click(dash.querySelector("[data-key='bar-c-fact']"));
+    expect(links.toCategory).toHaveBeenCalledWith("fact");
+
+    click(dash.querySelector("[data-key='series-recalled']"));
+    expect(dash.querySelector(".chart")!.getAttribute("aria-label")).toMatch(/^Memories recalled per day: 4 total/);
   });
 });
 
@@ -128,23 +257,24 @@ describe("sidebar", () => {
     currentProject: "alpha",
     projects: [{ project: "alpha", count: 2 }, { project: "<b>evil</b>", count: 1 }],
     categories: [{ name: "fact", count: 3 }, { name: "todo", count: 0 }, { name: "<i>x</i>", count: 2 }],
+    agents: [{ agent: "claude", count: 4 }],
     ...over,
   });
 
   it("lists scopes and non-empty categories, and escapes names", () => {
-    Object.assign(state, { status: status(), scope: { kind: "all", project: null }, category: "", minImportance: 0, pinned: false });
+    Object.assign(state, { route: "memories", status: status(), scope: { kind: "all", project: null }, category: "", minImportance: 0, pinned: false, agent: "" });
     renderSidebar(vi.fn());
     const filters = document.querySelector("#filters")!;
     expect(filters.querySelectorAll("b, i")).toHaveLength(0);
     const labels = [...filters.querySelectorAll(".nav-item .label")].map((e) => e.textContent);
-    expect(labels).toEqual(["All", "Global", "alpha", "<b>evil</b>", "All", "fact", "<i>x</i>"]); // "todo" has no memories, so it is hidden
+    expect(labels).toEqual(["All", "Global", "alpha", "<b>evil</b>", "All", "fact", "<i>x</i>", "All", "claude"]); // "todo" has no memories, so it is hidden
     expect(filters.querySelector("[data-key='scope-global'] .count")!.textContent).toBe("2"); // 5 total minus 3 in projects
     expect(filters.querySelector("[data-key='scope-p-alpha'] .here")).not.toBeNull();
     expect(document.querySelector("#embedder")!.textContent).toBe("ollama/nomic-embed-textin 5 of 5 indexed".replace("in ", ""));
   });
 
   it("selecting a filter updates state and tells the page to reload", () => {
-    Object.assign(state, { status: status(), scope: { kind: "all", project: null }, category: "", minImportance: 0, pinned: false });
+    Object.assign(state, { route: "memories", status: status(), scope: { kind: "all", project: null }, category: "", minImportance: 0, pinned: false, agent: "" });
     const onChange = vi.fn();
     renderSidebar(onChange);
     click(document.querySelector("[data-key='scope-p-alpha']"));
@@ -157,7 +287,16 @@ describe("sidebar", () => {
     pinned.checked = true;
     pinned.dispatchEvent(new Event("change", { bubbles: true }));
     expect(state.pinned).toBe(true);
-    expect(onChange).toHaveBeenCalledTimes(4);
+    click(document.querySelector("[data-key='agent-claude']"));
+    expect(state.agent).toBe("claude");
+    expect(onChange).toHaveBeenCalledTimes(5);
+  });
+
+  it("shows only the embedder line on the dashboard", () => {
+    Object.assign(state, { route: "dashboard", status: status() });
+    renderSidebar(vi.fn());
+    expect(document.querySelector("#filters")!.children).toHaveLength(0);
+    expect(document.querySelector("#embedder")!.textContent).toContain("ollama/nomic-embed-text");
   });
 });
 

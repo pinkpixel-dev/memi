@@ -102,6 +102,7 @@ export function registerTools(server: McpServer, ctx: ToolContext) {
         mode: a.mode,
         limit: a.limit,
       });
+      store.recordRecall({ agent: agent(), project: current(a.project), hits: r.hits.length });
       const out = r.hits.length ? formatHits(r.hits) : "No matching memories.";
       return text(r.note ? `${out}\n\nNote: ${r.note}` : out);
     }),
