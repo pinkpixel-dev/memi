@@ -153,7 +153,7 @@ describe("UI static files", () => {
 
     const linked = [...html.matchAll(/(?:href|src)="(\/[^"]+)"/g)].map((m) => m[1]!);
     expect(linked.length).toBeGreaterThanOrEqual(7);
-    const types: Record<string, string> = { css: "text/css", js: "text/javascript", svg: "image/svg+xml" };
+    const types: Record<string, string> = { css: "text/css", js: "text/javascript", svg: "image/svg+xml", png: "image/png" };
     for (const path of linked) {
       const res = await get(path);
       expect(res.status, path).toBe(200);

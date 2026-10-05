@@ -3,4 +3,5 @@ dist
 *.db
 *.db-*
 .env
+AGENTS.md
 DOCS/

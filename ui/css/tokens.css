@@ -21,8 +21,10 @@
   --bg: oklch(0.185 0.006 265);
   --surface: oklch(0.225 0.007 265);
   --surface-2: oklch(0.27 0.008 265);
-  --border: oklch(0.33 0.008 265);
-  --border-strong: oklch(0.42 0.01 265);
+  --border: oklch(0.28 0.008 265);
+  --border-strong: oklch(0.36 0.01 265);
+  --field: oklch(0.21 0.007 265);
+  --row-hover: oklch(0.205 0.006 265);
 
   --text: oklch(0.965 0.004 265);
   --text-dim: oklch(0.76 0.01 265);

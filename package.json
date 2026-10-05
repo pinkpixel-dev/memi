@@ -1,6 +1,6 @@
 {
   "name": "@pinkpixel/memi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local-first memory for AI agents. SQLite, hybrid search, MCP server, and a small local UI.",
   "type": "module",
   "license": "Apache-2.0",

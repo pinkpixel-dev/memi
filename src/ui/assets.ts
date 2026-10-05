@@ -10,6 +10,7 @@ const TYPES: Record<string, string> = {
   ".js": "text/javascript; charset=utf-8",
   ".woff2": "font/woff2",
   ".svg": "image/svg+xml",
+  ".png": "image/png",
   ".txt": "text/plain; charset=utf-8",
 };
 
@@ -35,7 +36,7 @@ export async function readAsset(urlPath: string): Promise<Asset | null> {
   if (!type || !file.startsWith(ROOT + sep)) return null;
   try {
     if (!(await stat(file)).isFile()) return null;
-    return { body: await readFile(file), type, cache: type.startsWith("font/") || type === "image/svg+xml" ? "public, max-age=86400" : "no-cache" };
+    return { body: await readFile(file), type, cache: type.startsWith("font/") || type.startsWith("image/") ? "public, max-age=86400" : "no-cache" };
   } catch {
     return null;
   }

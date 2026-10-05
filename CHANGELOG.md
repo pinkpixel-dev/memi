@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 - October 4, 2026
+
+### 🎨 UI
+- The memi mascot now sits next to the name in the sidebar and is used as the browser tab icon (plus an Apple touch icon)
+- Quieter styling overall: softer borders, filled search and inputs, roomier memory rows, and the sidebar header lines up with the top bar
+
 ## 1.0.0 - October 4, 2026
 
 First release.
